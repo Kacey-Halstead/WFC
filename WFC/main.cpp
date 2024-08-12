@@ -9,10 +9,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-
-
-int sizeX = 10;
-int sizeY = 10;
+#define width 10
+#define height 10
 
 using namespace std;
 
@@ -26,6 +24,7 @@ enum directions
 
 void Evaluate(Grid* grid, Tile* tile, directions dir);
 void ResetNeighbours(vector<Tile*> tiles);
+SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer);
 
 int main(int argc, char* argv[])
 {
@@ -55,53 +54,13 @@ int main(int argc, char* argv[])
 	}
 
 	//GRASS
-
-	//Load image
-	SDL_Surface* grassIMG = IMG_Load("Images/GRASS.png");
-	if (grassIMG == NULL) {
-		std::cout << "Error loading image: " << IMG_GetError();
-		return 5;
-	}
-
-	//Create texture
-	SDL_Texture* grassTEX = SDL_CreateTextureFromSurface(renderer, grassIMG); //renderer, surface
-	if (grassTEX == NULL) {
-		std::cout << "Error creating texture";
-		return 6;
-	}
-
-	SDL_FreeSurface(grassIMG); //do not need surface anymore. free = free memory
+	SDL_Texture* grassTEX = CreateTexture("Images/GRASS.png", renderer);
 
 	//SAND
-
-	SDL_Surface* sandIMG = IMG_Load("Images/SAND.png");
-	if (sandIMG == NULL) {
-		std::cout << "Error loading image: " << IMG_GetError();
-		return 5;
-	}
-
-	SDL_Texture* sandTEX = SDL_CreateTextureFromSurface(renderer, sandIMG);
-	if (sandTEX == NULL) {
-		std::cout << "Error creating texture";
-		return 6;
-	}
-
-	SDL_FreeSurface(sandIMG);
+	SDL_Texture* sandTEX = CreateTexture("Images/SAND.png", renderer);
 
 	//SEA
-	SDL_Surface* seaIMG = IMG_Load("Images/SEA.png");
-	if (seaIMG == NULL) {
-		std::cout << "Error loading image: " << IMG_GetError();
-		return 5;
-	}
-
-	SDL_Texture* seaTEX = SDL_CreateTextureFromSurface(renderer, seaIMG);
-	if (seaTEX == NULL) {
-		std::cout << "Error creating texture";
-		return 6;
-	}
-
-	SDL_FreeSurface(seaIMG);
+	SDL_Texture* seaTEX = CreateTexture("Images/SEA.png", renderer);
 
 
 
@@ -112,9 +71,9 @@ int main(int argc, char* argv[])
 
     int count = 0;
     vector<char> allTypes = { 'L', 'C', 'S' };
-    Grid* grid = new Grid(sizeX, sizeY , allTypes);
+    Grid* grid = new Grid(width, height , allTypes);
 
-    while (count < (sizeX * sizeY))
+    while (count < (width * height))
     {
         Tile* selectedTile = grid->SmallestEntropy();
 
@@ -136,11 +95,11 @@ int main(int argc, char* argv[])
 
 	//stores all rects to render tiles to
 	vector<SDL_Rect> rects;
-	for (int x = 0; x < sizeX; x++)
+	for (int x = 0; x < width; x++)
 	{
-		for (int y = 0; y < sizeY; y++)
+		for (int y = 0; y < height; y++)
 		{
-			SDL_Rect newRec{ x * (SDL_GetWindowSurface(window)->w / sizeX), y * (SDL_GetWindowSurface(window)->h / sizeY), SDL_GetWindowSurface(window)->w / sizeX, SDL_GetWindowSurface(window)->h / sizeY};
+			SDL_Rect newRec{ x * (SDL_GetWindowSurface(window)->w / width), y * (SDL_GetWindowSurface(window)->h / height), SDL_GetWindowSurface(window)->w / width, SDL_GetWindowSurface(window)->h / height};
 			rects.push_back(newRec);
 		}
 	}
@@ -158,9 +117,9 @@ int main(int argc, char* argv[])
 
 		SDL_RenderClear(renderer); //remove anything already rendered
 		int counter = 0;
-		for (int x = 0; x < sizeX; x++)
+		for (int x = 0; x < width; x++)
 		{
-			for (int y = 0; y < sizeY; y++)
+			for (int y = 0; y < height; y++)
 			{
 				switch (grid->Tiles[x][y]->type)
 				{
@@ -192,6 +151,26 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer)
+{
+	SDL_Surface* IMG = IMG_Load(filePath);
+	if (IMG == NULL) {
+		std::cout << "Error loading image: " << IMG_GetError();
+		return nullptr;
+	}
+
+	SDL_Texture* TEX = SDL_CreateTextureFromSurface(renderer, IMG);
+	if (TEX == NULL) {
+		std::cout << "Error creating texture";
+		return nullptr;
+	}
+
+	SDL_FreeSurface(IMG);
+	return TEX;
+}
+
+
 void Evaluate(Grid* grid, Tile* tile, directions dir)
 {
 	Tile* neighbour = nullptr;
@@ -209,7 +188,7 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 		}
 		break;
 	case DOWN:
-		if (tile->pos[1] + 1 < sizeY)
+		if (tile->pos[1] + 1 < height)
 		{
 			neighbour = grid->Tiles[x_index][y_index + 1]; //down
 		}
@@ -222,7 +201,7 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 		}
 		break;
 	case RIGHT:
-		if (tile->pos[0] + 1 < sizeX)
+		if (tile->pos[0] + 1 < width)
 		{
 
 			neighbour = grid->Tiles[x_index + 1][y_index]; //right
