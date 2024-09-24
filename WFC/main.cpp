@@ -9,8 +9,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define width 10
-#define height 10
+#define width 100
+#define height 100
 
 using namespace std;
 
@@ -19,7 +19,8 @@ enum directions
 	UP,
 	DOWN,
 	LEFT,
-	RIGHT
+	RIGHT,
+
 };
 
 void Evaluate(Grid* grid, Tile* tile, directions dir);
@@ -91,8 +92,6 @@ int main(int argc, char* argv[])
         count++;
     }
 
-	std::cout << endl;
-
 	//stores all rects to render tiles to
 	vector<SDL_Rect> rects;
 	for (int x = 0; x < width; x++)
@@ -137,12 +136,13 @@ int main(int argc, char* argv[])
 				}
 				counter++;
 			}
-			std::cout << endl;
 		}
 		SDL_RenderPresent(renderer); //moving from back buffer to screen
 	}
 
 	SDL_DestroyTexture(grassTEX);
+	SDL_DestroyTexture(seaTEX);
+	SDL_DestroyTexture(sandTEX);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	IMG_Quit();
@@ -178,32 +178,36 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 	int x_index = tile->pos[0];
 	int y_index = tile->pos[1];
 
+	bool upCondition = tile->pos[1] - 1 >= 0;
+	bool downCondition = tile->pos[1] + 1 < height;
+	bool leftCondition = tile->pos[0] - 1 >= 0;
+	bool rightCondition = tile->pos[0] + 1 < width;
+
 	switch (dir)
 	{
 	case UP:
-		if (tile->pos[1] - 1 >= 0)
+		if (upCondition)
 		{
 			neighbour = grid->Tiles[x_index][y_index - 1]; //up
 
 		}
 		break;
 	case DOWN:
-		if (tile->pos[1] + 1 < height)
+		if (downCondition)
 		{
 			neighbour = grid->Tiles[x_index][y_index + 1]; //down
 		}
 		break;
 	case LEFT:
-		if (tile->pos[0] - 1 >= 0)
+		if (leftCondition)
 		{
 
 			neighbour = grid->Tiles[x_index - 1][y_index]; //left
 		}
 		break;
 	case RIGHT:
-		if (tile->pos[0] + 1 < width)
+		if (rightCondition)
 		{
-
 			neighbour = grid->Tiles[x_index + 1][y_index]; //right
 		}
 		break;
