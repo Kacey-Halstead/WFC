@@ -3,14 +3,15 @@
 #include<stdlib.h>
 #include<time.h>
 #include<vector>
+#include <array>
 #include<algorithm>
 #include <windows.h>
 #include "Grid.h"
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define width 100
-#define height 100
+#define width 10
+#define height 10
 
 using namespace std;
 
@@ -23,9 +24,28 @@ enum directions
 
 };
 
-void Evaluate(Grid* grid, Tile* tile, directions dir);
+void Evaluate(Grid* grid, Tile* tile, char dir);
 void ResetNeighbours(vector<Tile*> tiles);
 SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer);
+
+std::vector<std::array<char, 3>> Rules;
+
+static std::array<char, 3> GenerateRule(char a, char b, char c)
+{
+	std::array<char, 3> rule = {a, b, c};
+	return rule;
+}
+
+void DefineRules()
+{
+	//S to right of C
+	//C to right L
+	Rules.emplace_back(GenerateRule('C', 'S', 'R'));
+	Rules.emplace_back(GenerateRule('S', 'C', 'L'));
+
+	Rules.emplace_back(GenerateRule('C', 'L', 'L'));
+	Rules.emplace_back(GenerateRule('L', 'C', 'R'));
+}
 
 int main(int argc, char* argv[])
 {
@@ -74,20 +94,26 @@ int main(int argc, char* argv[])
     vector<char> allTypes = { 'L', 'C', 'S' };
     Grid* grid = new Grid(width, height , allTypes);
 
+	Tile* GetRandTIle()
+	{
+
+	}
+
     while (count < (width * height))
     {
         Tile* selectedTile = grid->SmallestEntropy();
 
         //assign cell to type at random
         int randomType = rand() % selectedTile->availableTypes.size();
+		//if between 0 and 10, rand num between. 5 equal. Land 6, Sea 4.
         selectedTile->SetType(selectedTile->availableTypes[randomType]);
 		selectedTile->availableTypes.clear();
 
         //update all neighbours(up, down, left, right)
-        Evaluate(grid, selectedTile, UP);
-		Evaluate(grid, selectedTile, DOWN);
-		Evaluate(grid, selectedTile, LEFT);
-		Evaluate(grid, selectedTile, RIGHT);
+		Evaluate(grid, selectedTile, 'U');
+		Evaluate(grid, selectedTile, 'D');
+		Evaluate(grid, selectedTile, 'L');
+		Evaluate(grid, selectedTile, 'R');
 
         count++;
     }
@@ -170,8 +196,21 @@ SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer)
 	return TEX;
 }
 
+std::vector<char> GetTypeAndRules(char input, char dir)
+{
+	std::vector<char> toRemove;
+	for (std::array<char, 3> r : Rules)
+	{
+		if (dir == r[2])
+		{
+			toRemove.emplace_back(r[1]);
+		}
+	}
 
-void Evaluate(Grid* grid, Tile* tile, directions dir)
+	return toRemove;
+}
+
+void Evaluate(Grid* grid, Tile* tile, char dir)
 {
 	Tile* neighbour = nullptr;
 
@@ -185,27 +224,27 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 
 	switch (dir)
 	{
-	case UP:
+	case 'U':
 		if (upCondition)
 		{
 			neighbour = grid->Tiles[x_index][y_index - 1]; //up
 
 		}
 		break;
-	case DOWN:
+	case 'D':
 		if (downCondition)
 		{
 			neighbour = grid->Tiles[x_index][y_index + 1]; //down
 		}
 		break;
-	case LEFT:
+	case 'L':
 		if (leftCondition)
 		{
 
 			neighbour = grid->Tiles[x_index - 1][y_index]; //left
 		}
 		break;
-	case RIGHT:
+	case 'R':
 		if (rightCondition)
 		{
 			neighbour = grid->Tiles[x_index + 1][y_index]; //right
@@ -215,31 +254,16 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 		break;
 	}
 
-
 	if (neighbour == nullptr) return;
-	
 
-	char toRemove;
-
-	switch (tile->type)
+	for (char t : GetTypeAndRules(tile->type, dir))
 	{
-	case 'L':
-		toRemove = 'S';
-		break;
-
-	case 'S':
-		toRemove = 'L';
-		break;
-	default:
-		return;
-	}
-
-	//remove option from neighbours available tiles list
-	auto it = find(neighbour->availableTypes.begin(), neighbour->availableTypes.end(), toRemove);
-	if (it != neighbour->availableTypes.end() && neighbour->type == '0')
-	{
-		neighbour->availableTypes.erase(it);
-
+		//remove option from neighbours available tiles list
+		auto it = find(neighbour->availableTypes.begin(), neighbour->availableTypes.end(), t);
+		if (it != neighbour->availableTypes.end() && neighbour->type == '0')
+		{
+			neighbour->availableTypes.erase(it);
+		}
 	}
 
 	//if neighbour has no options left, clear that tile and its neighbours
@@ -253,10 +277,12 @@ void Evaluate(Grid* grid, Tile* tile, directions dir)
 		toReset.push_back(grid->Tiles[tile->pos[0] + 1][tile->pos[1]]); //right
 
 		ResetNeighbours(toReset);
-	}
-
-    
+	}   
 }
+
+
+
+
 
 void ResetNeighbours(vector<Tile*> tiles)
 {
