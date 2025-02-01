@@ -1,25 +1,41 @@
 #include "Tile.h"
-#include "iostream"
 
-using namespace std;
-Tile::Tile(vector<char> allTypes)
+Tile::Tile(SDL_Point position, int tileIndex)
 {
-	availableTypes = allTypes;
-	allAvTypes = allTypes;
-}
+	for (int i = 0; i < allTypes.size(); i++)
+	{
+		std::pair<char, float> tempPair = { allTypes[i], 1 };
+		typesAndWeights.push_back(tempPair);
+	}
 
-void Tile::SetType(char newType)
-{
-	type = newType;
-}
+	pos = position;
 
-void Tile::Print()
-{
-
-	cout << type;
+	index = tileIndex;
 }
 
 void Tile::Reset()
 {
-	availableTypes = allAvTypes;
+	typesAndWeights.clear();
+	for (int i = 0; i < allTypes.size(); i++)
+	{
+		std::pair<char, float> tempPair = { allTypes[i], 1 };
+		typesAndWeights.push_back(tempPair);
+	}
+	type = '0';
+}
+
+void Tile::UpdateTypeandWeight(char c, float weightChange)
+{
+	auto it = std::find_if(typesAndWeights.begin(), typesAndWeights.end(), [c](const auto& p) {
+		return p.first == c;
+		});
+
+	if (it != typesAndWeights.end())
+	{
+		typesAndWeights.at(it - typesAndWeights.begin()).second += weightChange;
+	}
+}
+
+Tile::~Tile()
+{
 }

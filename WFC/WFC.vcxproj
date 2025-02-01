@@ -145,12 +145,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="SDL_Window.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WFC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="SDL_Window.h" />
     <ClInclude Include="Tile.h" />
+    <ClInclude Include="WFC.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
